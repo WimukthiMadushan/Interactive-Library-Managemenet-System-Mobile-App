@@ -1,13 +1,18 @@
 import connection from "./../DataBase.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import {
+  fileURLToPath
+} from "url";
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(
+  import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getBook = (req, res) => {
-  const { id } = req.params;
+  const {
+    id
+  } = req.params;
   const query = `
     SELECT 
       Book.Book_ID,
@@ -33,10 +38,14 @@ export const getBook = (req, res) => {
   connection.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({
+        error: "Internal server error"
+      });
     }
     if (results.length === 0) {
-      return res.status(404).json({ error: "Book not found" });
+      return res.status(404).json({
+        error: "Book not found"
+      });
     }
     res.status(200).json(results[0]);
   });
@@ -44,7 +53,9 @@ export const getBook = (req, res) => {
 
 //.........................................not work..............................................................................
 export const addBook = (req, res) => {
-  const { filename: Image_Name } = req.file || {};
+  const {
+    filename: Image_Name
+  } = req.file || {};
   const {
     ISBN_Number,
     Title,
@@ -70,9 +81,13 @@ export const addBook = (req, res) => {
     (err) => {
       if (err) {
         console.error("Error executing query:", err);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          error: "Internal server error"
+        });
       }
-      res.status(201).json({ message: "Book added successfully" });
+      res.status(201).json({
+        message: "Book added successfully"
+      });
     }
   );
 };
@@ -82,7 +97,9 @@ export const getBookNames = (req, res) => {
   connection.query("SELECT Book_ID, Title FROM Book", (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({
+        error: "Internal server error"
+      });
     }
     res.status(200).json(results);
   });
@@ -108,7 +125,9 @@ export const getBookList = (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({
+        error: "Internal server error"
+      });
     }
     res.status(200).json(results);
   });
@@ -116,7 +135,11 @@ export const getBookList = (req, res) => {
 
 //......................have to check........................................................
 export const getBooksFromFilters = (req, res) => {
-  const { title, author, category } = req.query;
+  const {
+    title,
+    author,
+    category
+  } = req.query;
 
   let sqlQuery = `
     SELECT b.*, a.First_Name AS Author_First_Name, a.Last_Name AS Author_Last_Name,
@@ -145,7 +168,9 @@ export const getBooksFromFilters = (req, res) => {
   connection.query(sqlQuery, params, (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({
+        error: "Internal server error"
+      });
     }
     res.status(200).json(results);
   });
@@ -153,11 +178,12 @@ export const getBooksFromFilters = (req, res) => {
 
 
 export const deleteBook = (req, res) => {
-  const { id } = req.params;
+  const {
+    id
+  } = req.params;
 
   // Check if the book is borrowed or reserved
-  const checkQueries = [
-    {
+  const checkQueries = [{
       sql: "SELECT COUNT(*) AS count FROM Borrow WHERE Book_ID IN (SELECT Copy_ID FROM Book_Copy WHERE Book_ID = ?)",
       params: [id],
     },
@@ -171,11 +197,16 @@ export const deleteBook = (req, res) => {
 
   const checkStatus = (index) => {
     if (index < checkQueries.length) {
-      const { sql, params } = checkQueries[index];
+      const {
+        sql,
+        params
+      } = checkQueries[index];
       connection.query(sql, params, (err, results) => {
         if (err) {
           console.error("Database error:", err);
-          return res.status(500).json({ message: "Internal server error" });
+          return res.status(500).json({
+            message: "Internal server error"
+          });
         }
         if (results[0].count > 0) {
           borrowedOrReserved = true;
@@ -185,8 +216,7 @@ export const deleteBook = (req, res) => {
     } else {
       if (borrowedOrReserved) {
         return res.status(400).json({
-          message:
-            "Book is currently borrowed or reserved and cannot be deleted",
+          message: "Book is currently borrowed or reserved and cannot be deleted",
         });
       } else {
         // Proceed with the deletion of the book
@@ -196,11 +226,15 @@ export const deleteBook = (req, res) => {
           (err, results) => {
             if (err) {
               console.error("Error fetching book details:", err);
-              return res.status(500).json({ message: "Internal server error" });
+              return res.status(500).json({
+                message: "Internal server error"
+              });
             }
 
             if (results.length === 0) {
-              return res.status(404).json({ message: "Book not found" });
+              return res.status(404).json({
+                message: "Book not found"
+              });
             }
 
             const imagePath = results[0].Image_Path;
@@ -210,7 +244,9 @@ export const deleteBook = (req, res) => {
                 console.error("Error starting transaction:", err);
                 return res
                   .status(500)
-                  .json({ message: "Internal server error" });
+                  .json({
+                    message: "Internal server error"
+                  });
               }
 
               connection.query(
@@ -222,7 +258,9 @@ export const deleteBook = (req, res) => {
                       console.error("Database error:", err);
                       return res
                         .status(500)
-                        .json({ message: "Internal server error" });
+                        .json({
+                          message: "Internal server error"
+                        });
                     });
                   }
 
@@ -232,7 +270,9 @@ export const deleteBook = (req, res) => {
                         console.error("Error committing transaction:", err);
                         return res
                           .status(500)
-                          .json({ message: "Internal server error" });
+                          .json({
+                            message: "Internal server error"
+                          });
                       });
                     }
 
@@ -253,7 +293,9 @@ export const deleteBook = (req, res) => {
 
                     res
                       .status(200)
-                      .json({ message: "Book deleted successfully" });
+                      .json({
+                        message: "Book deleted successfully"
+                      });
                   });
                 }
               );
@@ -269,7 +311,9 @@ export const deleteBook = (req, res) => {
 
 //...........................not work ..........................................
 export const updateBook = (req, res) => {
-  const { id } = req.params;
+  const {
+    id
+  } = req.params;
   const Image_Name = req.file ? req.file.filename : null;
   const {
     ISBN_Number,
@@ -304,9 +348,13 @@ export const updateBook = (req, res) => {
   connection.query(query, queryParams, (err) => {
     if (err) {
       console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({
+        error: "Internal server error"
+      });
     }
-    res.status(200).json({ message: "Book updated successfully" });
+    res.status(200).json({
+      message: "Book updated successfully"
+    });
   });
 };
 
@@ -319,8 +367,6 @@ export const getBooksFromAdvancedFilters = (req, res) => {
     category,
     range
   } = req.body;
-  console.log(req.body);
-
 
   // Initialize query and conditions
   let sqlquery = `
@@ -346,6 +392,8 @@ export const getBooksFromAdvancedFilters = (req, res) => {
   if (category && category.length > 0) {
     const categoryValues = category.map(cat => `'${cat.value}'`).join(',');
     sqlquery += ` AND c.Cat_Name IN (${categoryValues})`;
+  } else if (category && category.length === 1) {
+    sqlquery += ` AND c.Cat_Name = '${category[0].value}'`;
   }
 
   // Add review rating range condition
@@ -365,6 +413,51 @@ export const getBooksFromAdvancedFilters = (req, res) => {
       return res.status(500).json({
         error: 'Database query error'
       });
+    }
+    res.status(200).json(results);
+  });
+};
+
+
+export const getBookFilterMobile = (req, res) => {
+  const { start, end, category, rating } = req.body;
+  console.log("Filters: ", req.body);
+
+  // Initialize query
+  let sqlquery = `
+    SELECT b.*, a.First_Name AS Author_First_Name, a.Last_Name AS Author_Last_Name,
+           p.Publisher_First_Name, p.Publisher_Last_Name,
+           c.Cat_Name AS Category_Name
+    FROM Book b
+    INNER JOIN Author a ON b.Author = a.Author_ID
+    INNER JOIN Publisher p ON b.Publisher = p.Publisher_ID
+    INNER JOIN Category c ON b.Category = c.Cat_ID
+    LEFT JOIN Review r ON b.Book_ID = r.Book_ID
+    WHERE 1=1
+  `;
+
+  // Add date range condition
+  if (start && end) {
+    sqlquery += ` AND b.Published_Date BETWEEN '${start}' AND '${end}'`;
+  }
+
+  // Add category condition
+  if (category && category.length > 0) {
+    const categoryValues = category.map(cat => `'${cat}'`).join(',');
+    sqlquery += ` AND c.Cat_ID IN (${categoryValues})`;
+  }
+
+  // Add rating condition
+  if (rating) {
+    sqlquery += ` AND r.Rating > ${rating}`;
+  }
+
+  sqlquery += ` GROUP BY b.Book_ID`;
+
+  // Execute query
+  connection.query(sqlquery, (error, results) => {
+    if (error) {
+      return res.status(500).json({ error: 'Database query error' });
     }
     res.status(200).json(results);
   });

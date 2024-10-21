@@ -6,7 +6,6 @@ import {
   reserveBook,
   getReserves,
   deleteReserve,
-  extendReserve,
 } from "../Controllers/Reserve.js";
 
 router.get("/", getReserves);

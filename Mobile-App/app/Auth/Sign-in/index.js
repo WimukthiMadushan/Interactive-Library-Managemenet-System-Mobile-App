@@ -6,20 +6,50 @@ import {
   View,
   StyleSheet,
   ScrollView,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignIn() {
   const router = useRouter();
 
-  // State variables for each input field
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const OnSignIn = () => {
-    // Handle sign-in logic here
+  const OnSignIn = async () => {
+    try {
+      // Ensure all fields are filled out
+      if (!username || !password) {
+        Alert.alert("Error", "All fields are required");
+        return;
+      }
+
+      const response = await axios.post(
+        "http://192.168.188.169:5001/api/auth/login",
+        {
+          Username: username,
+          Password: password,
+        }
+      ); 
+      
+      const { token,userId } = response.data;
+      if (token) {
+        await AsyncStorage.setItem("authToken", token);
+        await AsyncStorage.setItem("userId", userId.toString());
+        console.log("Signing in...");
+        console.log(router);
+        router.replace("/(tabs)");
+        console.log(router);
+      }
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Error", "Failed to sign in. Please check your credentials.");
+    }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -57,7 +87,7 @@ export default function SignIn() {
         </View>
 
         <TouchableOpacity onPress={OnSignIn} style={styles.signInButton}>
-          <Text style={styles.signInText}>Log In.</Text>
+          <Text style={styles.signInText}>Log In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

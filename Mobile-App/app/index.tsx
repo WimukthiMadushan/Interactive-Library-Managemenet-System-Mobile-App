@@ -2,17 +2,44 @@ import { Text, View } from "react-native";
 import { StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // To store/retrieve auth info
 
 export default function Index() {
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.log("Error checking authentication status", error);
+      setIsAuthenticated(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const handleStartPress = () => {
+    if (isAuthenticated) {
+      router.push("./(tabs)/Home"); // Redirect to Home if authenticated
+    } else {
+      router.push("./Auth/Sign-up"); // Redirect to Sign-up if not authenticated
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to InfoPulsse Library.</Text>
+      <Text style={styles.title}>Welcome to InfoPulse Library.</Text>
       <Text style={styles.subtitle}>Empowering Your Reading Journey!!</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push("./Auth/Sign-up")}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleStartPress}>
         <Text style={styles.buttonText}>Let's Start</Text>
       </TouchableOpacity>
     </View>
@@ -49,12 +76,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
-    fontFamily: "outfit-medium",
     textAlign: "center",
-  },
-  infoButton: {
-    backgroundColor: "#28a745",
-    padding: 15,
-    borderRadius: 8,
   },
 });

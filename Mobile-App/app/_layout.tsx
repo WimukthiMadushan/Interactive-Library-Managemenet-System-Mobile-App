@@ -1,8 +1,9 @@
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
+import { Text, View, ActivityIndicator } from "react-native";
 
 export default function RootLayout() {
-  useFonts({
+  const [fontsLoaded] = useFonts({
     "outfit-black": require("./../assets/fonts/Outfit-Black.ttf"),
     "outfit-bold": require("./../assets/fonts/Outfit-Bold.ttf"),
     "outfit-extra-bold": require("./../assets/fonts/Outfit-ExtraBold.ttf"),
@@ -13,9 +14,21 @@ export default function RootLayout() {
     "outfit-semibold": require("./../assets/fonts/Outfit-SemiBold.ttf"),
     "outfit-thin": require("./../assets/fonts/Outfit-Thin.ttf"),
   });
+
+  if (!fontsLoaded) {
+    // Show a loading indicator until fonts are loaded
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+        <Text>Loading fonts...</Text>
+      </View>
+    );
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }

@@ -15,10 +15,10 @@ import reserveRoutes from "./Routes/Reserve.js";
 import authorRoutes from "./Routes/Author.js";
 import languageRoutes from "./Routes/Language.js";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = 5001;
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -63,5 +63,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
+  console.log(`App listening at http://192.168.188.169:${port}`);
 });

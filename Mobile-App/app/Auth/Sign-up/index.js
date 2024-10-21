@@ -6,8 +6,11 @@ import {
   View,
   StyleSheet,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 
@@ -20,12 +23,67 @@ export default function SignUp() {
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(""); // Add email field
   const [address, setAddress] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [idNumber, setIdNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
-  const OnCreateAccount = () => {
-    // Handle account creation logic here
+  const OnCreateAccount = async () => {
+    // Ensure all fields are filled out
+    if (
+      !firstName ||
+      !lastName ||
+      !username ||
+      !password ||
+      !email ||
+      !address ||
+      !mobileNumber ||
+      !idNumber
+    ) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+
+    console.log("Creating account...");
+    setIsLoading(true); // Set loading state to true
+
+    try {
+      const response = await axios.post(
+        "http://192.168.188.169:5001/api/auth/register",
+        {
+          First_Name: firstName,
+          Last_Name: lastName,
+          Username: username,
+          Password: password,
+          Email: email,
+          Address: address,
+          NIC: idNumber,
+          Mobile: mobileNumber,
+        }
+      );
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Account created successfully!", [
+          { text: "OK", onPress: () => router.push("Auth/Sign-in") },
+        ]);
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error.response && error.response.data) {
+        Alert.alert(
+          "Error",
+          error.response.data.message || "Registration failed"
+        );
+      } else {
+        Alert.alert(
+          "Error",
+          "An error occurred while registering. Please try again."
+        );
+      }
+    } finally {
+      setIsLoading(false); // Set loading state to false after the request is done
+    }
   };
 
   return (
@@ -70,6 +128,17 @@ export default function SignUp() {
             placeholder="Enter Username"
             value={username}
             onChangeText={(value) => setUsername(value)}
+          />
+        </View>
+
+        {/* Email */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Email"
+            value={email}
+            onChangeText={(value) => setEmail(value)}
           />
         </View>
 
@@ -125,12 +194,20 @@ export default function SignUp() {
           <Text style={styles.signInText}>If You Already Library Member.</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={OnCreateAccount}
-          style={styles.createAccountButton}
-        >
-          <Text style={styles.createAccountText}>Create Account</Text>
-        </TouchableOpacity>
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#0000ff"
+            style={{ marginTop: 20 }}
+          />
+        ) : (
+          <TouchableOpacity
+            onPress={OnCreateAccount}
+            style={styles.createAccountButton}
+          >
+            <Text style={styles.createAccountText}>Create Account</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );

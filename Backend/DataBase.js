@@ -1,4 +1,7 @@
 import mysql2 from "mysql2";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 import {
   Book,
@@ -21,9 +24,10 @@ import insertDataFromFile from "./insertData.js";
 const connection = mysql2.createConnection({
   host: "localhost",
   user: "root",
-  password: "#WM@b2000#",
+  password: "dulanga1234",
   database: "library_database",
 });
+
 
 function DropTables() {
   connection.query(dropTables, (err, results) => {
@@ -84,9 +88,9 @@ function insertData() {
   insertDataFromFile("Book", "./../Backend/Data/books.csv");
   insertDataFromFile("Book_Copy", "./../Backend/Data/book_copy.csv");
   insertDataFromFile("Staff", "./../Backend/Data/staff.csv");
-  insertDataFromFile("Review", "./../Backend/Data/review.csv");
-  insertDataFromFile("Borrow", "./../Backend/Data/borrows.csv");
-  insertDataFromFile("Reserve", "./../Backend/Data/reserves.csv");
+  //insertDataFromFile("Review", "./../Backend/Data/review.csv");
+  //insertDataFromFile("Borrow", "./../Backend/Data/borrows.csv");
+  //insertDataFromFile("Reserve", "./../Backend/Data/reserves.csv");
 }
 
 connection.connect((err) => {
@@ -96,22 +100,21 @@ connection.connect((err) => {
   }
   console.log("Database connection established");
   //DropTables();
-  /*createTable(
-    User,
-    Author,
-    Category,
-    Publisher,
-    Language,
-    Location,
-    Book,
-    Book_Copy,
-    Staff,
-    Review,
-    Borrow,
-    Reserve
-  );
-  insertData();
-  */
+  //createTable(
+  //  User,
+  //  Author,
+  //  Category,
+  //  Publisher,
+  //  Language,
+  //  Location,
+  //  Book,
+  //  Book_Copy,
+  //  Staff,
+  //  Review,
+  //  Borrow,
+  //  Reserve
+  //);
+  //insertData();
   console.log("Database connected");
 });
 
