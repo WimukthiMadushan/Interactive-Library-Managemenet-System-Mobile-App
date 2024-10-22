@@ -40,9 +40,8 @@ export default function SignIn() {
         await AsyncStorage.setItem("authToken", token);
         await AsyncStorage.setItem("userId", userId.toString());
         console.log("Signing in...");
-        console.log(router);
-        router.replace("/(tabs)");
-        console.log(router);
+        router.replace("/(tabs)/Home");
+
       }
     } catch (err) {
       console.log(err);
