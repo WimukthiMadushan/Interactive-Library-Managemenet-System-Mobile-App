@@ -87,9 +87,9 @@ const Home = () => {
       <View style={styles.listItem}>
         <Image source={{ uri: item.Image_Path }} style={styles.listItemImage} />
         <View style={styles.listItemTextContainer}>
-          <Text style={styles.listItemTitle}>{item.Title}</Text>
+          <Text style={styles.listItemTitle}>{item.Title.trim()}</Text>
           <Text style={styles.listItemAuthor}>{item.Author}</Text>
-          <Text style={styles.listItemDescription}>{item.Description}</Text>
+          <Text style={styles.listItemDescription}>{item.Description.trim()}</Text>
         </View>
       </View>
     </TouchableOpacity>

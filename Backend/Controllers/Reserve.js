@@ -9,6 +9,7 @@ export const getReserveBooksOfUser = (req, res) => {
         Reserve.Reserve_ID,
         Book_Copy.Copy_ID,
         Book.Title,
+        Book.Image_Path,
         Language.Language_Name AS Language,
         Location.Floor,
         Location.Section,

@@ -24,6 +24,8 @@ const BookDetails = () => {
   const [isStartDateTimePickerVisible, setStartDateTimePickerVisibility] = useState(false);
   const [isEndDateTimePickerVisible, setEndDateTimePickerVisibility] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
 
 
   const formatDate = (dateString) => {
@@ -89,12 +91,7 @@ const BookDetails = () => {
       const reserveEndTime = endDate.toISOString().split("T")[1].slice(0, 5);
   
       const userId = parseInt(await AsyncStorage.getItem("userId"), 10);
-      console.log("User ID:", userId);
-      console.log("Copy ID:", selectedCopyId);
-        console.log("Reserve Date:", reserveDate);
-        console.log("Reserve Start Time:", reserveStartTime);
-        console.log("Reserve End Time:", reserveEndTime);
-
+  
       const response = await axios.post(
         `http://192.168.188.169:5001/api/reserve`,
         {
@@ -114,8 +111,13 @@ const BookDetails = () => {
       );
       setModalVisible(false);
     } catch (error) {
-      console.log(error.message);
-      alert("Error reserving book. Please try again later.");
+      if (error.response && error.response.status === 400) {
+        setErrorMessage("You have already reserverd your maximum number of reservations");
+        setErrorModalVisible(true);
+      } else {
+        console.log(error.message);
+        alert("Error reserving book. Please try again later.");
+      }
     }
   };
 
@@ -283,6 +285,31 @@ const BookDetails = () => {
           <Text style={styles.noReviewsText}>No reviews available.</Text>
         )}
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={errorModalVisible}
+        onRequestClose={() => {
+          setErrorModalVisible(!errorModalVisible);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Error</Text>
+            <Text style={styles.modalMessage}>{errorMessage}</Text>
+            <TouchableOpacity
+              style={styles.okButton}
+              onPress={() => {
+                setErrorModalVisible(false);
+                setModalVisible(false);
+              }}
+            >
+              <Text style={styles.buttonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -580,6 +607,18 @@ noReviewsText: {
   textAlign: 'center',
   marginTop: 10,
   marginBottom: 30,
+},
+modalMessage: {
+  fontSize: 16,
+  marginBottom: 20,
+  textAlign: 'center',
+},
+okButton: {
+  backgroundColor: 'black',
+  padding: 10,
+  width: '25%',
+  borderRadius: 10,
+  alignItems: 'center',
 },
 });
 

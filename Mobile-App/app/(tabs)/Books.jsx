@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  TextInput,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const Books = () => {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
@@ -18,6 +20,11 @@ const Books = () => {
   const [authState, setAuthState] = useState({ userId: null });
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(0);
+  const [selectedBookId, setSelectedBookId] = useState(null);
+  const [selectedBorrowId, setSelectedBorrowId] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -58,11 +65,37 @@ const Books = () => {
     setModalVisible(true);
   };
 
+  const handleAddReview = (borrowId,bookId) => {
+    setSelectedBookId(bookId);
+    setSelectedBorrowId(borrowId);
+    setReviewText('');
+    setRating(0);
+    setReviewModalVisible(true);
+  };
+
+  const confirmAddReview = async () => {
+    try {
+      // API call to submit the review
+      await axios.post(`http://192.168.188.169:5001/api/review`, {
+        Review: reviewText,
+        Rating: rating,
+        Borrow_ID: selectedBorrowId,
+        BookID: selectedBookId,
+      });
+      Alert.alert("Success", "Review added successfully.");
+    } catch (error) {
+      console.error("Error adding review:", error);
+      Alert.alert("Error", "Failed to add the review.");
+    } finally {
+      setReviewModalVisible(false);
+    }
+  };
+
   const confirmCancelReservation = async () => {
     try {
       // API call to cancel the reservation
       await axios.delete(
-        `http://192.168.188.169:5001/api/reserve/${selectedReservation}`
+        `http://192.168.188.169:5001/api/reserve/cancel/${selectedReservation}`
       );
       setReservedBooks(
         reservedBooks.filter((item) => item.Reserve_ID !== selectedReservation)
@@ -79,7 +112,7 @@ const Books = () => {
 
   const renderBorrowedBookItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.Title}</Text>
+      <Text style={styles.cardTitle}>{item.Title.trim()}</Text>
       <Text style={styles.cardText}>ID: {item.Borrow_ID}</Text>
       <Text style={styles.cardText}>Language: {item.Language_Name}</Text>
       <Text style={styles.cardText}>
@@ -93,7 +126,7 @@ const Books = () => {
       <Text style={styles.cardText}>
         Return Date: {new Date(item.Return_Date).toLocaleDateString()}
       </Text>
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => handleAddReview(item.Borrow_ID,item.Book_ID)}>
         <Text style={styles.buttonText}>Add Review</Text>
       </TouchableOpacity>
     </View>
@@ -101,7 +134,7 @@ const Books = () => {
 
   const renderReservedBookItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.Title}</Text>
+      <Text style={styles.cardTitle}>{item.Title.trim()}</Text>
       <Text style={styles.cardText}>ID: {item.Reserve_ID}</Text>
       <Text style={styles.cardText}>Language: {item.Language}</Text>
       <Text style={styles.cardText}>
@@ -144,29 +177,73 @@ const Books = () => {
         }
       />
       <Modal
-        transparent={true}
         animationType="slide"
+        transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Confirm Cancellation</Text>
             <Text style={styles.modalMessage}>
               Are you sure you want to cancel this reservation?
             </Text>
-            <View style={styles.modalButtons}>
+            <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
+                style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.buttonText}>No</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.button, styles.confirmButton]}
+                style={styles.confirmButton}
                 onPress={confirmCancelReservation}
               >
                 <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isReviewModalVisible}
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Add Review</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Write your review"
+              value={reviewText}
+              onChangeText={setReviewText}
+            />
+            <View style={styles.ratingContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                  <AntDesign
+                    name={star <= rating ? "star" : "staro"}
+                    size={24}
+                    color="black"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setReviewModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={confirmAddReview}
+              >
+                <Text style={styles.buttonText}>Add</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -180,7 +257,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f0f4f7",
+    backgroundColor: "#f4f4f4",
     marginTop: 60,
   },
   header: {
@@ -211,10 +288,11 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "black",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
@@ -227,6 +305,79 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginVertical: 20,
   },
+  modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+},
+modalView: {
+  width: '80%',
+  backgroundColor: 'white',
+  borderRadius: 10,
+  padding: 20,
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  marginBottom: 20,
+  textAlign: 'center',
+},
+modalMessage: {
+  fontSize: 16,
+  marginBottom: 20,
+  textAlign: 'center',
+},
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  width: '100%',
+},
+cancelButton: {
+  backgroundColor: 'gray',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  flex: 1,
+  marginHorizontal: 5,
+},
+confirmButton: {
+  backgroundColor: 'black',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  flex: 1,
+  marginHorizontal: 5,
+},
+buttonText: {
+  color: '#fff',
+  fontSize: 14,
+  fontWeight: 'bold',
+},
+
+input: {
+  width: '100%',
+  height: 40,
+  borderColor: 'gray',
+  borderWidth: 1,
+  borderRadius: 5,
+  paddingHorizontal: 10,
+  marginBottom: 20,
+},
+ratingContainer: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  marginBottom: 20,
+},
 });
 
 export default Books;

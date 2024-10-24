@@ -6,6 +6,7 @@ export const getBorrowBooksOfUser = (req, res) => {
   const sqlQuery = `
     SELECT 
       Book.Title,
+      Book.Image_Path,
       Borrow.Borrow_ID,
       Borrow.Book_ID,
       Borrow.Borrow_Date,

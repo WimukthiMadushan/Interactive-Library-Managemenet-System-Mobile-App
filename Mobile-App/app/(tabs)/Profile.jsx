@@ -36,7 +36,7 @@ const Profile = () => {
 
           // Fetch additional user details
           const response = await axios.get(
-            `http://192.168.8.125:5001/api/user/${decoded.ID}`
+            `http://192.168.188.169:5001/api/user/${decoded.ID}`
           );
           setUserDetails(response.data);
         }
@@ -53,7 +53,7 @@ const Profile = () => {
       <View style={styles.profileContainer}>
         {/* User Image and Welcome Message */}
         <Image
-          source={require("../../assets/images/Profile_pic.jpg")}
+          source={require("../../assets/images/dp.jpg")}
           style={styles.profileImage}
         />
         <Text style={styles.welcomeMessage}>
